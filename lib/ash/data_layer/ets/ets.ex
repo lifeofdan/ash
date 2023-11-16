@@ -536,6 +536,15 @@ defmodule Ash.DataLayer.Ets do
                public?: false
              }) do
           {:ok, expression} ->
+            expression =
+              Ash.Actions.Read.add_calc_context_to_filter(
+                expression,
+                calculation.context[:actor],
+                calculation.context[:authorize?],
+                calculation.context[:tenant],
+                calculation.context[:tracer]
+              )
+
             case Ash.Expr.eval_hydrated(expression, record: record, resource: resource, api: api) do
               {:ok, value} ->
                 if calculation.load do
@@ -611,8 +620,11 @@ defmodule Ash.DataLayer.Ets do
           },
           {:ok, record} ->
             with {:ok, loaded_record} <-
-                   api.load(record, relationship_path_to_load(relationship_path, field),
-                     actor: Map.get(context, :actor)
+                   api.load(
+                     record,
+                     relationship_path_to_load(relationship_path, field),
+                     actor: Map.get(context, :actor),
+                     authorize?: Map.get(context, :authorize?, true)
                    ),
                  related <-
                    Ash.Filter.Runtime.get_related(loaded_record, relationship_path),

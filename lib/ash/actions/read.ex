@@ -768,7 +768,8 @@ defmodule Ash.Actions.Read do
     end
   end
 
-  defp add_calc_context_to_filter(filter, actor, authorize?, tenant, tracer) do
+  @doc false
+  def add_calc_context_to_filter(filter, actor, authorize?, tenant, tracer) do
     Ash.Filter.map(filter, fn
       %Ash.Query.Parent{} = parent ->
         %{
@@ -2325,7 +2326,7 @@ defmodule Ash.Actions.Read do
           end),
         aggregates:
           Map.new(query.aggregates, fn {key, agg} ->
-            {key, add_calc_context(agg, actor, authorize?, tenant, tracer)}
+            {key, add_calc_context(agg, actor, agg.authorize? && authorize?, tenant, tracer)}
           end),
         calculations:
           Map.new(query.calculations, fn {key, calc} ->
